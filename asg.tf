@@ -49,3 +49,55 @@ resource "aws_autoscaling_group" "as_group" {
     version = "$Latest"
   }
 }
+
+resource "aws_autoscaling_policy" "policy1" {
+  name                   = "policy1-test"
+  scaling_adjustment     = 4
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.as_group.name
+}
+
+resource "aws_cloudwatch_metric_alarm" "GreaterThanOrEqualTo80" {
+  alarm_name                = "GreaterThanOrEqualTo80"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 120
+  statistic           = "Average"
+  threshold           = 15
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.as_group.name
+  }
+
+  alarm_description = "This metric monitors ec2 cpu utilization"
+  alarm_actions     = [aws_autoscaling_policy.policy1.arn]
+}
+
+resource "aws_autoscaling_policy" "policy2" {
+  name                   = "policy2-test"
+  scaling_adjustment     = 4
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.as_group.name
+}
+
+resource "aws_cloudwatch_metric_alarm" "LessThanOrEqualTo80" {
+  alarm_name                = "LessThanOrEqualTo80"
+  comparison_operator       = "LessThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 120
+  statistic           = "Average"
+  threshold           = 10
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.as_group.name
+  }
+
+  alarm_description = "This metric monitors ec2 cpu utilization"
+  alarm_actions     = [aws_autoscaling_policy.policy2.arn]
+}
